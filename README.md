@@ -2,154 +2,101 @@
 
 ## Overview
 
-This project presents a Deepfake Image Detection System built using TensorFlow and MobileNetV2 Transfer Learning. The objective is to classify facial images as either Real or Fake by leveraging a pretrained deep learning model and fine-tuning it on a deepfake dataset.
+This project implements a Deepfake Image Detection System using TensorFlow and MobileNetV2 Transfer Learning. The model is trained to classify facial images as either Real or Fake by learning visual patterns commonly found in manipulated images.
 
-Deepfake technology has become increasingly sophisticated, making it difficult to distinguish manipulated content from authentic media. This project addresses that challenge by utilizing convolutional neural networks (CNNs) and transfer learning techniques to automatically identify manipulated facial images.
-
-The model is trained on labeled real and fake face images, performs image preprocessing and augmentation, and predicts whether a given image is genuine or artificially generated.
+The project focuses on the machine learning pipeline, including data preprocessing, augmentation, transfer learning, model training, evaluation, and prediction.
 
 ---
 
 ## Problem Statement
 
-Deepfake images generated using modern AI techniques can be used for misinformation, identity theft, fraud, and digital manipulation. Manual detection is often unreliable and time-consuming.
+Deepfake technology can generate highly realistic fake images that are difficult to distinguish from authentic content. Such manipulated media can be used for misinformation, fraud, and identity misuse.
 
-The goal of this project is to build a machine learning system capable of automatically detecting deepfake images with high accuracy using computer vision and deep learning techniques.
+The objective of this project is to build a deep learning model capable of automatically detecting deepfake images with high accuracy.
 
 ---
 
 ## Features
 
-- Deepfake image classification
+- Binary image classification (Real vs Fake)
 - Transfer Learning using MobileNetV2
 - Image preprocessing and normalization
-- Data augmentation for improved generalization
-- Binary classification (Real vs Fake)
-- Training and validation performance visualization
-- Single image prediction pipeline
-- Streamlit/Gradio integration support
-- Scalable architecture for future deployment
+- Data augmentation
+- Model training and validation
+- Accuracy and loss visualization
+- Single image prediction support
 
 ---
 
-## Technology Stack
-
-### Programming Language
+## Technologies Used
 
 - Python
-
-### Libraries and Frameworks
-
 - TensorFlow
 - Keras
 - NumPy
-- Matplotlib
 - OpenCV
+- Matplotlib
 - Scikit-Learn
-- Streamlit
-- Gradio
-
-### Deep Learning Model
-
-- MobileNetV2 (Pretrained on ImageNet)
 
 ---
 
-## Project Structure
+## Dataset Structure
 
 ```text
-Deepfake-Detection-Model/
+Dataset/
 │
-├── app.py
-├── gradio_app.py
-├── Deepfake_Detection_Model.ipynb
-├── test.png
-├── requirements.txt
-├── README.md
+├── Train/
+│   ├── Real/
+│   └── Fake/
 │
-├── Dataset/
-│   ├── Train/
-│   │   ├── Real/
-│   │   └── Fake/
-│   │
-│   ├── Validation/
-│   │   ├── Real/
-│   │   └── Fake/
-│   │
-│   └── Test/
-│       ├── Real/
-│       └── Fake/
+├── Validation/
+│   ├── Real/
+│   └── Fake/
 │
-└── deepfake_model.h5
+└── Test/
+    ├── Real/
+    └── Fake/
 ```
 
----
+### Train Set
 
-## Dataset Organization
-
-The dataset is divided into three subsets:
-
-### Training Set
-
-Used for learning patterns and updating model weights.
-
-```text
-Train/
-├── Real
-└── Fake
-```
+Used for learning image patterns and updating model weights.
 
 ### Validation Set
 
-Used during training to evaluate model performance and detect overfitting.
-
-```text
-Validation/
-├── Real
-└── Fake
-```
+Used during training to monitor performance and detect overfitting.
 
 ### Test Set
 
-Used after training to evaluate the final model on unseen images.
-
-```text
-Test/
-├── Real
-└── Fake
-```
+Used to evaluate the final model on unseen data.
 
 ---
 
 ## Data Preprocessing
 
-Before training, images undergo several preprocessing operations.
+The following preprocessing techniques are applied:
 
 ### Normalization
-
-Pixel values originally range between:
-
-```text
-0 - 255
-```
-
-They are normalized using:
 
 ```python
 rescale=1./255
 ```
 
-Resulting range:
+Converts pixel values from:
 
 ```text
-0 - 1
+0-255
 ```
 
-This improves training stability and convergence speed.
+to
+
+```text
+0-1
+```
+
+which improves training stability.
 
 ### Data Augmentation
-
-The following transformations are applied to training images:
 
 ```python
 rotation_range=10
@@ -161,15 +108,13 @@ Benefits:
 
 - Improves generalization
 - Reduces overfitting
-- Creates additional training variations
+- Simulates real-world image variations
 
 ---
 
 ## Model Architecture
 
 ### Base Model
-
-The project uses MobileNetV2 pretrained on ImageNet.
 
 ```python
 MobileNetV2(
@@ -179,17 +124,9 @@ MobileNetV2(
 )
 ```
 
-Reasons for choosing MobileNetV2:
+MobileNetV2 is pretrained on ImageNet and acts as a feature extractor.
 
-- Lightweight architecture
-- Fast training
-- High accuracy
-- Effective feature extraction
-- Suitable for deployment
-
----
-
-### Custom Classification Head
+### Custom Layers
 
 ```python
 GlobalAveragePooling2D()
@@ -200,49 +137,31 @@ Dense(1, activation='sigmoid')
 
 #### GlobalAveragePooling2D
 
-Reduces feature maps into a compact feature vector.
+Converts feature maps into a compact feature vector.
 
 #### Dense Layer
 
-Learns deepfake-specific features extracted from MobileNetV2.
+Learns deepfake-specific patterns.
 
 #### Dropout
 
-Reduces overfitting by randomly deactivating neurons during training.
+Reduces overfitting.
 
 #### Sigmoid Layer
 
-Outputs a probability value:
-
-```text
-0 → Fake
-1 → Real
-```
+Outputs probability for binary classification.
 
 ---
 
-## Transfer Learning Strategy
+## Transfer Learning
 
-Most layers of MobileNetV2 are frozen:
+Most MobileNetV2 layers are frozen during training.
 
 ```python
 layer.trainable = False
 ```
 
-This preserves previously learned visual features such as:
-
-- Edges
-- Facial structures
-- Textures
-- Patterns
-
-Only the final layers are fine-tuned for deepfake detection.
-
-Benefits:
-
-- Faster training
-- Reduced computational cost
-- Better performance on small datasets
+This allows the model to reuse previously learned image features while fine-tuning only the final layers for deepfake detection.
 
 ---
 
@@ -258,22 +177,19 @@ model.compile(
 
 ### Optimizer
 
-Adam optimizer is used for efficient gradient updates.
+Adam
 
 ### Loss Function
 
-Binary Cross Entropy is used because the problem involves two classes:
-
-- Real
-- Fake
+Binary Cross Entropy
 
 ### Evaluation Metric
 
-Accuracy is used to measure classification performance.
+Accuracy
 
 ---
 
-## Training Process
+## Training
 
 ```python
 model.fit(
@@ -285,34 +201,32 @@ model.fit(
 )
 ```
 
-### Training Workflow
+Training workflow:
 
 1. Load image batches
 2. Extract features using MobileNetV2
 3. Generate predictions
-4. Calculate loss
+4. Compute loss
 5. Update trainable weights
-6. Evaluate validation performance
-7. Repeat for multiple epochs
+6. Validate model performance
+7. Repeat for all epochs
 
 ---
 
 ## Prediction Pipeline
 
-The prediction workflow is:
-
 ```text
 Input Image
       ↓
-Resize (128x128)
+Resize to 128×128
       ↓
 Normalize
       ↓
-Convert to Tensor
+Feature Extraction
       ↓
-Model Prediction
+Classification
       ↓
-Real or Fake Classification
+Real / Fake
 ```
 
 Example:
@@ -330,43 +244,36 @@ else:
 
 ## Results
 
-The model learns visual inconsistencies commonly present in deepfake images, including:
+The model learns to identify:
 
-- Facial distortions
-- Blending artifacts
+- Facial inconsistencies
+- Image manipulation artifacts
 - Texture irregularities
 - Synthetic image patterns
 
-Training and validation accuracy are monitored throughout the training process to ensure proper learning and minimize overfitting.
+Training and validation metrics are monitored to ensure proper learning and reduce overfitting.
 
 ---
 
 ## Applications
 
-This project can be applied in:
-
-- Social Media Content Verification
 - Digital Forensics
-- News Verification Systems
-- Cybersecurity Platforms
+- Social Media Verification
+- Fake News Detection
+- Content Moderation
 - Identity Protection Systems
-- Fake Media Detection Tools
-- AI Content Moderation Systems
+- AI-Generated Media Analysis
 
 ---
 
 ## Future Improvements
 
-Potential enhancements include:
-
 - Video Deepfake Detection
-- Face Detection using MTCNN
-- Real-time Webcam Detection
+- Real-Time Detection
 - Explainable AI Visualization
-- Ensemble Learning Approaches
-- Deployment using Docker
-- Cloud-based Inference APIs
-- Mobile Application Integration
+- Ensemble Models
+- Larger Dataset Training
+- Deployment as an API
 
 ---
 
@@ -376,12 +283,6 @@ Clone the repository:
 
 ```bash
 git clone https://github.com/Shubhamwaditake17/Deepfake-Detection-Model.git
-```
-
-Move into the project directory:
-
-```bash
-cd Deepfake-Detection-Model
 ```
 
 Install dependencies:
@@ -394,44 +295,30 @@ pip install -r requirements.txt
 
 ## Running the Project
 
-### Jupyter Notebook
-
-```bash
-jupyter notebook
-```
-
-Open:
+Open and run:
 
 ```text
 Deepfake_Detection_Model.ipynb
 ```
 
-### Streamlit Application
+or
 
 ```bash
-streamlit run app.py
+jupyter notebook
 ```
 
-### Gradio Application
-
-```bash
-python gradio_app.py
-```
+and execute all cells.
 
 ---
 
 ## Author
 
-**Shubham Waditake**
+Shubham Waditake
 
-Third Year Computer Science Engineering Student
+Third Year Computer Science Engineering
 
 Areas of Interest:
-
 - Artificial Intelligence
 - Machine Learning
 - Deep Learning
 - Computer Vision
-- Data Structures and Algorithms
-
----
